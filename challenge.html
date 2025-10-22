@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>פורטל חיפוש פנימי</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -21,51 +22,13 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             width: 600px;
         }
-        h1 {
-            color: #1877f2; /* Google/Facebook blue */
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
-        p {
-            color: #555;
-            font-size: 1.1em;
-            margin-bottom: 30px;
-        }
-        .search-box {
-            width: 100%;
-            padding: 12px;
-            font-size: 1.2em;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            box-sizing: border-box; /* To include padding in width */
-            margin-bottom: 20px;
-        }
-        .search-button {
-            background-color: #1877f2;
-            color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.2em;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        .search-button:hover {
-            background-color: #166fe5;
-        }
-        #results {
-            margin-top: 30px;
-            text-align: left;
-            color: #333;
-            border-top: 1px solid #eee;
-            padding-top: 20px;
-        }
-        .result-item {
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background: #f9f9f9;
-        }
+        h1 { color: #1877f2; font-size: 2.5em; margin-bottom: 10px; }
+        p { color: #555; font-size: 1.1em; margin-bottom: 30px; }
+        .search-box { width: 100%; padding: 12px; font-size: 1.2em; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; margin-bottom: 20px; }
+        .search-button { background-color: #1877f2; color: white; padding: 12px 24px; border: none; border-radius: 8px; font-size: 1.2em; cursor: pointer; transition: background-color 0.3s; }
+        .search-button:hover { background-color: #166fe5; }
+        #results { margin-top: 30px; text-align: left; color: #333; border-top: 1px solid #eee; padding-top: 20px; }
+        .result-item { padding: 10px; border: 1px solid #ddd; border-radius: 8px; background: #f9f9f9; }
         .result-item h3 { margin: 0 0 5px 0; color: #1a0dab; }
         .result-item p { margin: 0; font-size: 0.9em; }
         .result-item strong { color: #d93025; font-size: 1.1em; }
@@ -85,29 +48,41 @@
     </div>
 
     <script>
+        // 2. זה הדגל שלנו, אבל הוא מוצפן. 
+        //    (הצפנתי את 'flag{Th3_L3ak1ng_Tr3asur3_2025}' עם הסיסמה 'site:vv48.github.io/cyber-guard-solutions filetype:pdf')
+        var encryptedFlag = "U2FsdGVkX19N52y/B6h5bBmfpZ+nlyt8y3YgKkEFRwXq3Zl4Gbu1qZ8lCSTFqG/n";
+
         function runSearch() {
-            // 1. קבל את מה שהמשתמש כתב, נקה רווחים והפוך לאותיות קטנות
-            let query = document.getElementById('dork-input').value.trim().toLowerCase();
+            // 3. קח את מה שהמשתמש כתב (זו ה"סיסמה" שהוא מנסה)
+            let userInputKey = document.getElementById('dork-input').value.trim().toLowerCase();
             let resultsDiv = document.getElementById('results');
 
-            // 2. הגדר את התשובה הנכונה
-            //    שים לב שהיא באותיות קטנות וללא רווחים מיותרים
-            let correctAnswer = "site:vv48.github.io/cyber-guard-solutions filetype:pdf";
+            // 4. נסה לפענח
+            try {
+                var decryptedBytes = CryptoJS.AES.decrypt(encryptedFlag, userInputKey);
+                var decryptedText = decryptedBytes.toString(CryptoJS.enc.Utf8);
 
-            // 3. בדוק אם התשובה נכונה
-            if (query === correctAnswer) {
-                // אם כן, הצג את הדגל
-                resultsDiv.innerHTML = `
-                    <p>נמצאה תוצאה 1:</p>
-                    <div class="result-item">
-                        <h3>confidential_financial_report_q3_2025.pdf</h3>
-                        <p><b>דגל (Flag):</b> <strong>flag{Th3_L3ak1ng_Tr3asur3_2025}</strong></p>
-                    </div>`;
-            } else {
-                // אם לא, הצג הודעת שגיאה
+                // 5. בדוק אם הפענוח הצליח (הטקסט מתחיל ב"flag")
+                if (decryptedText.startsWith("flag{")) {
+                    // אם כן, הצג את הדגל
+                    resultsDiv.innerHTML = `
+                        <p>נמצאה תוצאה 1:</p>
+                        <div class="result-item">
+                            <h3>confidential_financial_report_q3_2025.pdf</h3>
+                            <p><b>דגל (Flag):</b> <strong>${decryptedText}</strong></p>
+                        </div>`;
+                } else {
+                    // אם הפענוח נכשל (אבל לא זרק שגיאה), זה אומר סיסמה שגויה
+                    resultsDiv.innerHTML = '<p>לא נמצאו תוצאות. נסה שאילתה מדויקת יותר.</p>';
+                }
+            } catch (e) {
+                // אם הייתה שגיאה כללית בפענוח (סיסמה שגויה לחלוטין)
                 resultsDiv.innerHTML = '<p>לא נמצאו תוצאות. נסה שאילתה מדויקת יותר.</p>';
             }
         }
+    </script>
+</body>
+</html>
     </script>
 </body>
 </html>
